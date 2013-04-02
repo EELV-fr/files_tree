@@ -8,7 +8,7 @@ Add : OC5 friendly
 Fix : Performances optimization
 
 V 0.2.2
-Fix : Closed icon folder for ownCloud not running in the host root
+Fix : Closed icon folder for ownCloud, when not running in the host root
 
 V 0.2.1
 Add : Different icon for open or closed folders
@@ -22,4 +22,4 @@ Add : Different colours for expanded or collpased toggle buttons
 Fix : Empty folder superposition bug
 
 V 0.1.0
-create the app
+creating the app
