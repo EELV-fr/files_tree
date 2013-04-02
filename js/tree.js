@@ -33,7 +33,6 @@ function FileTree(){
 	});
 	tree.sync();
 }
-
 FileTree.prototype={	
 	toggle:function(){
 		if($('#files_tree').width()==10){
