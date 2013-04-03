@@ -7,7 +7,7 @@ class OC_FilesTree_Hooks{
 				$cache->remove('files_tree_cache');
 			}
 			else{
-				// Nothing to do
+				// Nothing to do here
 			}
 		}
 	}
