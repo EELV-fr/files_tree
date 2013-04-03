@@ -1,3 +1,6 @@
+V 0.4.1
+Fix : Only refresh cache on folder action
+
 V 0.4.0
 Add : Performances optimization with cache
 Add : Refresh cache button
