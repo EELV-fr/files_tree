@@ -1,3 +1,12 @@
+V 0.5.0
+Add : Full AJAX navigation
+Fix : Performances optimization
+
+V 0.4.2
+Fix : Performances optimization
+Fix : Cache was making opened folders forgotten
+Fix : CSS fix
+
 V 0.4.1
 Fix : Only refresh cache on folder action
 
