@@ -56,6 +56,7 @@ FileTree.prototype={
 		setTimeout('tree.sync()',2000);
 	},
 	browse:function(dir,refresh){
+		$('#dropdown').remove();
 		$.ajax({
 			type: 'POST',
 			url:'./?app=files_tree&getfile=ajax/explore.php&dir='+dir+refresh,
@@ -167,8 +168,10 @@ $(document).ready(function(){
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
+		console.log(url);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
+		if(url=='' || url.indexOf('dir=')==-1) return;
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
