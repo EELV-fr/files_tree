@@ -90,7 +90,6 @@ FileTree.prototype={
 				dataType: 'html',
 				async: true,
 				success: function (data) {
-					
     				$('#dropdown').remove();
 					document.title = $(data).filter('title').text(); 
 					$('#dir').val( $(data).find("#dir").val());
@@ -101,6 +100,11 @@ FileTree.prototype={
 				    });
 				     $('#controls').prepend(crumb);	
 					FileList.update($(data).find("#fileList").html());
+					$('#fileList a.name').each(function(){
+						$(this).attr('href',decodeURIComponent($(this).attr('href')));
+						$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
+					});
+					//
 					$('#fileList td.filename').each(function(){
 						FileActions.display($(this));
 					});
