@@ -1,3 +1,6 @@
+V 0.5.2
+Fix : Decode files URI to make it texteditor friendly
+
 V 0.5.1
 Fix : Bug fix
 
