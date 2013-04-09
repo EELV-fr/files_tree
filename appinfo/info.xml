@@ -6,5 +6,5 @@
     <version>0.6.0</version>
     <licence>CC BY-NC 3.0</licence>
     <author>Bastien Ho (EELV - Urbancube)</author>
-    <require>4.0.7</require>
+    <require>5.0.0</require>
 </info>
