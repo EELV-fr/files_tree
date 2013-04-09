@@ -55,6 +55,82 @@ FileTree.prototype={
 		$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').outerHeight()-38);
 		setTimeout('tree.sync()',2000);
 	},
+	content:function(fileliste){
+		FileList.update(fileliste);
+		$('#fileList a.name').each(function(){
+			$(this).attr('href',decodeURIComponent($(this).attr('href')));
+			$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
+		});
+		//
+		$('#fileList td.filename').each(function(){
+			FileActions.display($(this));
+		});
+		tree.collex();	
+		tree.rescan();
+	},
+	getshared:function(){
+		$.ajax({
+			type: 'GET',
+			url:'/index.php/apps/files?dir=//Shared',
+			dataType: 'html',
+			async: true,
+			success: function (data) {
+				fileliste = $(data).find("#fileList").html();
+				fileliste=fileliste.substr(fileliste.indexOf("<tr"));
+				$('#fileList').append(fileliste);
+				$('#files_tree_shared_line').nextAll('tr').find('a.name').each(function(){
+					$(this).attr('href',decodeURIComponent($(this).attr('href')));
+					$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
+				});
+				//
+				$('#files_tree_shared_line').nextAll('tr').find('td.filename').each(function(){
+					FileActions.display($(this));
+				});
+				tree.rescan();
+			}				
+		});
+	},
+	sharedbutton:function(val){
+		$('#files_tree_shared_line').remove();
+		var ch_sh='';
+		var tit = t('files_tree','Show shared content');
+		if(val==1){
+		  ch_sh='checked';
+		  tit = t('files_tree','Hide shared content');	
+		} 			
+		var ret ='<tr id="files_tree_shared_line"><td colspan="4">';
+			ret+='<label id="files_tree_shared_link"><input type="checkbox" name="files_tree_shared_input" id="files_tree_shared_link" '+ch_sh+' />';
+			ret+='<span id="files_tree_shared_title">';
+			ret+=tit;
+			ret+='</span></label></td></tr>';
+		$('#fileList').append(ret);
+		$('#files_tree_shared_link').change(function(){
+			var val=0;
+			//console.log(document.getElementById('files_tree_shared_link').checked==true);
+			if ($('input[name=files_tree_shared_input]').is(":checked")) {
+				val=1;
+			}
+			$.ajax({
+				type: 'POST',
+				url: './?app=files_tree&getfile=ajax/save.php&f=shared_show&s='+val,
+				dataType: 'html',
+				async: true,
+				success: function (data) {
+					$('#files_tree_shared_line').nextAll('tr').remove();						
+					if(val==0){
+						$('#fileList tr').filterAttr('data-file','Shared').fadeIn();
+						$('#files_tree_shared_title').html(t('files_tree','Show shared content'));
+					}
+					if(val==1){
+						tree.getshared();
+						$('#fileList tr').filterAttr('data-file','Shared').fadeOut();
+						$('#files_tree_shared_title').html(t('files_tree','Hide shared content'));
+					}									
+				}
+			});
+			
+		}); 
+	},
 	browse:function(dir,refresh){
 		$('#dropdown').remove();
 		$.ajax({
@@ -70,12 +146,25 @@ FileTree.prototype={
 					for(var f in k.stat){
 						$('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
 					}
-				}			
+				}
 				$('#dir_browser ul ul li:first-child').click(function(){
 					tree.toggle_dir($(this).parent());					
 				});	
-				tree.collex();	
-				tree.rescan();
+				if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
+					tree.sharedbutton(k.shared);
+					if(k.shared==1){
+						$('#fileList tr').filterAttr('data-file','Shared').hide();
+						tree.getshared();
+					}
+					else{						
+						//tree.content(fileliste,'fileList');
+					}					
+				}			
+				else{
+					tree.collex();	
+					tree.rescan();
+				}
+				
 			}
 		});	
 	},
@@ -83,7 +172,7 @@ FileTree.prototype={
 	browseContent:function(url){
 		url=url.replace('app_files&dir=','');
 		var lastModified = new Date();
-		$("#fileList").fadeOut(500,function(){
+		$('#fileList').fadeOut(500,function(){
 			$.ajax({
 				type: 'GET',
 				url:url,
@@ -93,29 +182,31 @@ FileTree.prototype={
     				$('#dropdown').remove();
 					document.title = $(data).filter('title').text(); 
 					$('#dir').val( $(data).find("#dir").val());
-				    $('#controls .crumb').remove();	
+				    $('#controls .crumb').animate({width:0,opacity:0},300,function(){
+				    	$(this).remove();
+				    });	
 				    var crumb='';		    
-				    $(data).find("#controls .crumb").each(function(){
+				    $(data).find('#controls .crumb').each(function(){
 				    	crumb+=$(this).wrap('<div></div>').parent().html();
 				    });
+				 	setTimeout(function(){	
 				     $('#controls').prepend(crumb);	
-					FileList.update($(data).find("#fileList").html());
-					$('#fileList a.name').each(function(){
-						$(this).attr('href',decodeURIComponent($(this).attr('href')));
-						$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
-					});
-					//
-					$('#fileList td.filename').each(function(){
-						FileActions.display($(this));
-					});
-				  tree.browse('','');
-				  $("#fileList").fadeIn(500);
+				     $('#controls .crumb').css('opacity',0).animate({width:'toggle'},1).animate({width:'toggle',opacity:1},300);
+				     tree.browse('','');
+				 	},500);
+				    			    
+				     var fileliste = $(data).find('#fileList').html();				    
+					 tree.content(fileliste);					
+				  
+				  $('#fileList').fadeIn(500);
 				}				
 			});	
+			
 		});
 		
 	},
 	rescan:function(){
+		console.log('scan');
 		var lechem='';
 		var la_path = $('#dir').val().split('/');
 		$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
@@ -129,16 +220,18 @@ FileTree.prototype={
 			$('#dir_browser a').filterAttr('data-pathname', lechem).css('font-weight','700');
 		}		
 		$('#dir_browser a').filterAttr('data-pathname', lechem).parent('li').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
-		$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a').click(function(event){
+		$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a.name').click(function(event){
 			event.preventDefault();
 			location.hash = this.pathname+this.search;
 			return false;
 			//$(this).attr('href', top.location.host+top.location.pathname+'#'+$(this).attr('href').replace('?','#'));
 		});
-		/*$('#fileList tr').filterAttr('data-type','dir').find('a').each(function(){
-			$(this).attr('href',$(this).attr('href').replace('?','#'));
-		});*/
-		// FOR AJAX NAVIGATION :  
+		
+		// Traduction
+		$('tr').filterAttr('data-file','Shared').find('span.nametext').text(t('files_tree','Shared'));
+		$('a').filterAttr('data-pathname','/Shared').text(t('files_tree','Shared'));
+		$('div').filterAttr('data-dir','/Shared').find('a').text(t('files_tree','Shared'));
+		
 	},
 	toggle_dir:function(ul){
 		ul.toggleClass('expanded').toggleClass('collapsed');
@@ -149,7 +242,8 @@ FileTree.prototype={
 			ul.parent('li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
 		}
 		tree.collex();
-		//$(this).parent().;
+		
+		
 		$.ajax({
 			type: 'POST',
 			url: './?app=files_tree&getfile=ajax/save.php&d='+ul.data('path')+'&s='+ul.attr('class'),
@@ -167,7 +261,7 @@ FileTree.prototype={
 };
 
 $(document).ready(function(){
-  if($('#fileList').length>0) {
+  if($('#fileList').length>0) {	
 	var the_tree=new FileTree();
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
