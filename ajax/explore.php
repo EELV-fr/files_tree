@@ -45,10 +45,13 @@ if($loglist!='' && $inilist==''){
 $dirs_stat = OC_Preferences::getValue($uid,'files_tree','dirs_stat','');
 if($dirs_stat=='') $dirs_stat=array();
 else $dirs_stat=unserialize($dirs_stat);
+
+$shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','');
 	
 echo json_encode(
 	array(
 		'list'=>$loglist,
-		'stat'=>$dirs_stat
+		'stat'=>$dirs_stat,
+		'shared'=>$shared_show
 	)
 );
