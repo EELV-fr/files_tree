@@ -1,3 +1,8 @@
+V 0.6.0
+Add : Show shared content in root directory
+Add : Breadcrumb transition
+Fix: Bug fix
+
 V 0.5.2
 Fix : Decode files URI to make it texteditor friendly
 
