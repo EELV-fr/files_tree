@@ -266,7 +266,6 @@ $(document).ready(function(){
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
-		console.log(url);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
 		if(url=='' || url.indexOf('dir=')==-1) return;
