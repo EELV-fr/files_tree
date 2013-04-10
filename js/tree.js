@@ -106,7 +106,6 @@ FileTree.prototype={
 		$('#fileList').append(ret);
 		$('#files_tree_shared_link').change(function(){
 			var val=0;
-			//console.log(document.getElementById('files_tree_shared_link').checked==true);
 			if ($('input[name=files_tree_shared_input]').is(":checked")) {
 				val=1;
 			}
@@ -206,7 +205,6 @@ FileTree.prototype={
 		
 	},
 	rescan:function(){
-		console.log('scan');
 		var lechem='';
 		var la_path = $('#dir').val().split('/');
 		$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
@@ -266,7 +264,6 @@ $(document).ready(function(){
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
-		console.log(url);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
 		if(url=='' || url.indexOf('dir=')==-1) return;
