@@ -1,3 +1,7 @@
+V 0.6.5
+Fix : Scan only opened folders, increases performances
+Fix: Bug fix
+
 V 0.6.0
 Add : Show shared content in root directory
 Add : Breadcrumb transition

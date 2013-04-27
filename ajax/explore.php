@@ -3,30 +3,42 @@ OCP\JSON::callCheck();
 $currentdir=$_REQUEST['dir'];
 $uid=OCP\User::getUser();
 
-function listdir($dir){
+function listdir($dir,$dirs_stat){
 	$dir = stripslashes($dir);
 	$list = \OC\Files\Filesystem::getdirectorycontent($dir);			
 	if(sizeof($list)>0){
 		$ret='';
 		foreach( $list as $i ) {		
 			if($i['type']=='dir' && $i['name']!='.') {
-				$ret.='<li><a href="./?app=files&dir='.$dir.'/'.$i['name'].'" data-pathname="'.$dir.'/'.$i['name'].'">';
+				$ret.='<li><a data-pathname="'.$dir.'/'.$i['name'].'" class="ft_sesam"></a>';
+				$ret.='<a href="./?app=files&dir='.$dir.'/'.$i['name'].'" data-pathname="'.$dir.'/'.$i['name'].'" class="ft_link">';
 				$ret.=$i['name'].'</a>';
-				$ret.=listdir($dir.'/'.$i['name']);
+				if(in_array($dir.'/'.$i['name'],$dirs_stat)) $ret.=listdir($dir.'/'.$i['name'],$dirs_stat);
 				$ret.='</li>';
 			}			
 		}
 		if($ret!=''){
-			$ret= '<ul data-path="'.$dir.'"><li></li>'.$ret.'</ul>';
+			$ret= '<ul data-path="'.$dir.'">'.$ret.'</ul>';
 		}
 		return stripslashes($ret);
 	}
 }
+/* Get opened folders */
+$dirs_stat = OC_Preferences::getValue($uid,'files_tree','dirs_stat','');
+if($dirs_stat=='') $dirs_stat=array();
+else $dirs_stat=unserialize($dirs_stat);
+// Clean
+$s=array();
+foreach($dirs_stat as $dir=>$stat){
+	if(substr($dir,0,1)=='/') $s[$dir]=$stat;
+}
+$dirs_stat=$s;
+
 
 /* Caching results */
 $loglist='';
 $inilist='';
-$dir_cache_file='files_tree_cache';
+$dir_cache_file='files_tree_cache'.$currentdir;
 
 $cache = new OC_Cache_File;
 
@@ -35,17 +47,13 @@ if(!isset($_REQUEST['refresh']) && null !== $loglist = $cache->get($dir_cache_fi
 }
 
 if($loglist==''){
-	$loglist = listdir('');
+	$loglist = listdir($currentdir,$dirs_stat);
 }
 if($loglist!='' && $inilist==''){	
 	$cache->set($dir_cache_file, $loglist);	
 	\OC_Log::write('files_tree', 'cache saved to file ' . $dir_cache_file, \OC_Log::DEBUG);
 }
 /* Sendind results */
-$dirs_stat = OC_Preferences::getValue($uid,'files_tree','dirs_stat','');
-if($dirs_stat=='') $dirs_stat=array();
-else $dirs_stat=unserialize($dirs_stat);
-
 $shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','');
 	
 echo json_encode(
