@@ -1,5 +1,6 @@
 V 0.6.5
 Fix : Scan only opened folders, increases performances
+Fix : Hide new and upload button if write is not permitted
 Fix: Bug fix
 
 V 0.6.0

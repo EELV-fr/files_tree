@@ -198,7 +198,7 @@ FileTree.prototype={
 				     $('#controls .crumb').css('opacity',0).animate({width:'toggle'},1).animate({width:'toggle',opacity:1},300);
 				     //tree.browse('','');
 				 	},500);
-				    			    
+				    $('#permissions').val($(data).find('#permissions').val());			    
 				     tree.content($(data).find('#fileList').html());					
 				  
 				  $('#fileList').fadeIn(500);
@@ -210,7 +210,14 @@ FileTree.prototype={
 	},
 	rescan:function(){
 		var lechem='';
-		var la_path = $('#dir').val().split('/');
+		if($('#permissions').val()<23){
+			$('#new, #upload').fadeOut();
+		}
+		else{
+			$('#new, #upload').fadeIn();
+		}
+		var dir = $('#dir').val();
+		var la_path = dir.split('/');
 		$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
 		//$('#dir_browser ul.expanded').parent().css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
 		$('#dir_browser a').css('font-weight','500');
