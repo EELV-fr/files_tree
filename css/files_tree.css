@@ -119,7 +119,7 @@
 }
 #dir_browser ul li a.ft_link{
 	display:block;
-	background-color:#FFF;
+	background-color:transparent;
 	padding:4px;
 	margin-left:-4px;
 }
