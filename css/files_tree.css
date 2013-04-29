@@ -117,13 +117,19 @@
 	min-height:14px;
 	position:relative;
 }
-#dir_browser a{
+#dir_browser ul li a.ft_link{
 	display:block;
-	margin:7px 0;
+	background-color:#FFF;
+	padding:4px;
+	margin-left:-4px;
 }
+#dir_browser ul li a.ft_link:hover{
+	background-color:#EEE;
+}
+
 #dir_browser li a.ft_sesam{
 	position:absolute;
-	top:-5px;
+	top:3px;
 	left:5px;
 	width:4px;
 	height:4px;

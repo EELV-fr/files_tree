@@ -67,10 +67,21 @@ FileTree.prototype={
 				$(this).attr('href',decodeURIComponent($(this).attr('href')));
 				$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
 			});
-			//
-			$('#fileList td.filename').each(function(){
+			
+			
+			// Re-assign actions			
+			$('#fileList tr td.filename').each(function(i,e){
 				FileActions.display($(this));
-			});
+				if ($(e).parent().data('permissions') & OC.PERMISSION_DELETE) {
+					$(e).draggable(dragOptions);
+				}
+			}); 
+			$('#fileList tr[data-type="dir"] td.filename').each(function(i,e){
+				if ($(e).parent().data('permissions') && OC.PERMISSION_CREATE){
+					//console.log(folderDropOptions);
+					$(e).droppable(folderDropOptions);
+				}
+			}); 
 			tree.collex();	
 			tree.rescan();
 		}
@@ -174,7 +185,8 @@ FileTree.prototype={
 	},
 	// For AJAX Navigation
 	browseContent:function(url){
-		url=url.replace('app_files&dir=','');		
+		url=url.replace('app_files&dir=','');
+		if(url=='') url='/';		
 		var lastModified = new Date();
 		$('#fileList').fadeOut(500,function(){
 			$.ajax({
@@ -239,6 +251,8 @@ FileTree.prototype={
 			return false;	
 			//$(this).attr('href', top.location.host+top.location.pathname+'#'+$(this).attr('href').replace('?','#'));
 		});
+		$('div.crumb:not(.last)').droppable(crumbDropOptions);
+		$('#dir_browser li').droppable(crumbDropOptions);
 		$('#dir_browser a.ft_sesam').unbind('click').click(function(){
 			tree.toggle_dir($(this).parent());					
 		});
@@ -260,14 +274,14 @@ FileTree.prototype={
 		ul = li.children('ul');
 		if(ul.length==0){
 			var dirpath = li.children('a:first-child').data('pathname');		
-			console.log(dirpath);
+			//console.log(dirpath);
 			$.ajax({
 				type: 'POST',
 				url: './?app=files_tree&getfile=ajax/explore.php&dir='+dirpath,
 				dataType: 'json',
 				async: true,
 				success: function (k) {
-					console.log(k);
+					//console.log(k);
 					if(k.list!='' && k.list!=null){
 						li.children('a:first-child').animate({opacity:1});
 						li.append(k.list);

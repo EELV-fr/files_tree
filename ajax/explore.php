@@ -10,7 +10,7 @@ function listdir($dir,$dirs_stat){
 		$ret='';
 		foreach( $list as $i ) {		
 			if($i['type']=='dir' && $i['name']!='.') {
-				$ret.='<li><a data-pathname="'.$dir.'/'.$i['name'].'" class="ft_sesam"></a>';
+				$ret.='<li data-dir="'.$dir.'/'.$i['name'].'"><a data-pathname="'.$dir.'/'.$i['name'].'" class="ft_sesam"></a>';
 				$ret.='<a href="./?app=files&dir='.$dir.'/'.$i['name'].'" data-pathname="'.$dir.'/'.$i['name'].'" class="ft_link">';
 				$ret.=$i['name'].'</a>';
 				if(in_array($dir.'/'.$i['name'],$dirs_stat)) $ret.=listdir($dir.'/'.$i['name'],$dirs_stat);
