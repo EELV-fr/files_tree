@@ -20,6 +20,7 @@
 *
 */
 function FileTree(){
+	display_shared=0;
 	tree=this;
 	$('#fileTable').css('width','86%');
 	$('#emptyfolder').css('margin-left','20%');
@@ -68,6 +69,16 @@ FileTree.prototype={
 				$(this).parent().parent().attr('data-file',decodeURIComponent($(this).parent().parent().data('file')));
 			});
 			
+			if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
+				tree.sharedbutton(display_shared);
+				if(display_shared==1){
+					$('#fileList tr').filterAttr('data-file','Shared').hide();
+					tree.getshared();
+				}
+				else{						
+					//tree.content(fileliste,'fileList');
+				}					
+			}
 			
 			// Re-assign actions			
 			$('#fileList tr td.filename').each(function(i,e){
@@ -150,6 +161,7 @@ FileTree.prototype={
 	},
 	browse:function(dir,refresh){
 		$('#dropdown').remove();
+		if(dir=='undefined') return;
 		$.ajax({
 			type: 'POST',
 			url:'./?app=files_tree&getfile=ajax/explore.php&dir='+dir+refresh,
@@ -159,12 +171,12 @@ FileTree.prototype={
 				$('#dir_browser').html(k.list);
 				$('#dir_browser ul').attr('class','collapsed');	
 				var stats = k.stat;
+				display_shared=k.shared;
 				if(k.stat){
 					for(var f in k.stat){
 						$('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
 					}
 				}
-					
 				if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
 					tree.sharedbutton(k.shared);
 					if(k.shared==1){
@@ -205,10 +217,11 @@ FileTree.prototype={
 				    $(data).find('#controls .crumb').each(function(){
 				    	crumb+=$(this).wrap('<div></div>').parent().html();
 				    });
+				    
 				 	setTimeout(function(){	
 				     $('#controls').prepend(crumb);	
 				     $('#controls .crumb').css('opacity',0).animate({width:'toggle'},1).animate({width:'toggle',opacity:1},300);
-				     //tree.browse('','');
+				     tree.rescan();
 				 	},500);
 				    $('#permissions').val($(data).find('#permissions').val());			    
 				     tree.content($(data).find('#fileList').html());					
@@ -254,7 +267,7 @@ FileTree.prototype={
 		$('div.crumb:not(.last)').droppable(crumbDropOptions);
 		$('#dir_browser li').droppable(crumbDropOptions);
 		$('#dir_browser a.ft_sesam').unbind('click').click(function(){
-			tree.toggle_dir($(this).parent());					
+			tree.toggle_dir($(this).parent(),1);					
 		});
 		
 		// Traduction
@@ -265,46 +278,54 @@ FileTree.prototype={
 	},
 	open_dir:function(li){		
 		ul = li.children('ul');
-		if(ul.length==0){
-			tree.toggle_dir(li);
+		if(li.attr('class')!='expanded'){
+			tree.toggle_dir(li,0);
 		}
 		li.attr('class','expanded');
 	},
-	toggle_dir:function(li){
+	toggle_dir:function(li,manual){
 		ul = li.children('ul');
 		if(ul.length==0){
-			var dirpath = li.children('a:first-child').data('pathname');		
-			//console.log(dirpath);
-			$.ajax({
-				type: 'POST',
-				url: './?app=files_tree&getfile=ajax/explore.php&dir='+dirpath,
-				dataType: 'json',
-				async: true,
-				success: function (k) {
-					//console.log(k);
-					if(k.list!='' && k.list!=null){
-						li.children('a:first-child').animate({opacity:1});
-						li.append(k.list);
-						ul = li.children('ul');
-						if(ul.length>0){
-							li.attr('class','expanded');
-							tree.rescan();
-							$.ajax({
-								type: 'GET',
-								url: './?app=files_tree&getfile=ajax/save.php&d='+dirpath+'&s=expanded',
-								dataType: 'html',
-								async: true,
-								success: function (k) {
-									//nothing to do		
-								}
-							});
+			var dirpath = li.children('a:first-child').data('pathname');			
+			if(dirpath==undefined){
+				return false;	
+			} 	
+			else{
+				//console.log(dirpath);
+				$.ajax({
+					type: 'POST',
+					url: './?app=files_tree&getfile=ajax/explore.php&dir='+dirpath+'&from=toggle_dir',
+					dataType: 'json',
+					async: true,
+					success: function (k) {
+						//console.log(k);
+						if(k.list!='' && k.list!=null){
+							li.children('a:first-child').animate({opacity:1});
+							li.append(k.list);
+							ul = li.children('ul');
+							if(ul.length>0){
+								li.attr('class','expanded');
+								tree.rescan();
+								if(manual==1){
+									$.ajax({
+										type: 'GET',
+										url: './?app=files_tree&getfile=ajax/save.php&d='+dirpath+'&s=expanded',
+										dataType: 'html',
+										async: true,
+										success: function (k) {
+											//nothing to do		
+										}
+									});
+								}								
+							}
 						}
+						else{
+							li.children('a:first-child').animate({opacity:0.35});	
+						}					
 					}
-					else{
-						li.children('a:first-child').animate({opacity:0.35});	
-					}					
-				}
-			});
+				});
+			}
+			
 		}
 		else if(li.attr('class')=='expanded'){
 			li.attr('class','collapsed');
