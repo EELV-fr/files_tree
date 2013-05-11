@@ -79,6 +79,8 @@ FileTree.prototype={
 					//tree.content(fileliste,'fileList');
 				}					
 			}
+			// Parse shared items
+			OC.Share.loadIcons('file');
 			
 			// Re-assign actions			
 			$('#fileList tr td.filename').each(function(i,e){
@@ -93,6 +95,9 @@ FileTree.prototype={
 					$(e).droppable(folderDropOptions);
 				}
 			}); 
+			
+			
+			
 			tree.collex();	
 			tree.rescan();
 		}
@@ -358,6 +363,10 @@ $(document).ready(function(){
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
-	on_hashchange(true);
+	var url = window.location.hash.substring(1);
+	if(url==''){
+		window.location='#/index.php/apps/files?dir=';
+	}
+	//on_hashchange(true);
   }
 });
