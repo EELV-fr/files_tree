@@ -79,6 +79,8 @@ FileTree.prototype={
 					//tree.content(fileliste,'fileList');
 				}					
 			}
+			// Parse shared items
+			OC.Share.loadIcons('file');
 			
 			// Re-assign actions			
 			$('#fileList tr td.filename').each(function(i,e){
@@ -93,6 +95,9 @@ FileTree.prototype={
 					$(e).droppable(folderDropOptions);
 				}
 			}); 
+			
+			
+			
 			tree.collex();	
 			tree.rescan();
 		}
@@ -241,35 +246,37 @@ FileTree.prototype={
 		else{
 			$('#new, #upload').fadeIn();
 		}
-		var dir = $('#dir').val();
-		var la_path = dir.split('/');
-		$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
-		//$('#dir_browser ul.expanded').parent().css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
-		$('#dir_browser a').css('font-weight','500');
-		$('#dir_browser a.ft_sesam').css('background','#FFF');
-		for(var ledir in la_path){
-			le_dir=la_path[ledir];
-			//if(ledir=='') ledir='/';
-			if(ledir>0) lechem+='/';
-			lechem+=le_dir;
-			tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());
-			//$('#dir_browser li').filterAttr('data-path', lechem).attr('class','expanded');					
-			$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
-			$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
-		}		
-		//$('#dir_browser a').filterAttr('data-pathname', lechem).parent('li').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
-		$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a.name').unbind('click').click(function(event){
-			event.preventDefault();
-			location.hash = this.pathname+this.search;			
-			return false;	
-			//$(this).attr('href', top.location.host+top.location.pathname+'#'+$(this).attr('href').replace('?','#'));
-		});
-		$('div.crumb:not(.last)').droppable(crumbDropOptions);
-		$('#dir_browser li').droppable(crumbDropOptions);
-		$('#dir_browser a.ft_sesam').unbind('click').click(function(){
-			tree.toggle_dir($(this).parent(),1);					
-		});
 		
+		if($('#dir').length>0) {	
+			var dir = $('#dir').val();
+			var la_path = dir.split('/');
+			$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
+			//$('#dir_browser ul.expanded').parent().css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
+			$('#dir_browser a').css('font-weight','500');
+			$('#dir_browser a.ft_sesam').css('background','#FFF');
+			for(var ledir in la_path){
+				le_dir=la_path[ledir];
+				//if(ledir=='') ledir='/';
+				if(ledir>0) lechem+='/';
+				lechem+=le_dir;
+				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());
+				//$('#dir_browser li').filterAttr('data-path', lechem).attr('class','expanded');					
+				$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
+				$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
+			}		
+			//$('#dir_browser a').filterAttr('data-pathname', lechem).parent('li').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
+			$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a.name').unbind('click').click(function(event){
+				event.preventDefault();
+				location.hash = this.pathname+this.search;			
+				return false;	
+				//$(this).attr('href', top.location.host+top.location.pathname+'#'+$(this).attr('href').replace('?','#'));
+			});
+			$('div.crumb:not(.last)').droppable(crumbDropOptions);
+			$('#dir_browser li').droppable(crumbDropOptions);
+			$('#dir_browser a.ft_sesam').unbind('click').click(function(){
+				tree.toggle_dir($(this).parent(),1);					
+			});
+		}
 		// Traduction
 		$('tr').filterAttr('data-file','Shared').find('span.nametext').text(t('files_tree','Shared'));
 		$('a.ft_link').filterAttr('data-pathname','/Shared').text(t('files_tree','Shared'));
@@ -356,6 +363,10 @@ $(document).ready(function(){
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
-	on_hashchange(true);
+	var url = window.location.hash.substring(1);
+	if(url==''){
+		window.location='#/index.php/apps/files?dir=';
+	}
+	//on_hashchange(true);
   }
 });

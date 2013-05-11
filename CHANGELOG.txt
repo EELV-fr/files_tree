@@ -1,3 +1,9 @@
+V 0.6.7
+Fix : reloads and display shared items
+
+V 0.6.6
+Fix : works fine in trashbin
+
 V 0.6.5
 Fix : Scan only opened folders, increases performances
 Fix : Hide new and upload button if write is not permitted
