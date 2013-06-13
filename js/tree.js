@@ -30,7 +30,7 @@ function FileTree(){
 	tree.browse('','');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
 		$('#dir_browser').html('<span class="loading">'+t('files_tree','Resfreshing files tree')+'</span>');
-		tree.browse('','&refresh=1');		
+		tree.browse('','1');		
 	});
 	tree.sync();
 }
@@ -91,7 +91,6 @@ FileTree.prototype={
 			}); 
 			$('#fileList tr[data-type="dir"] td.filename').each(function(i,e){
 				if ($(e).parent().data('permissions') && OC.PERMISSION_CREATE){
-					//console.log(folderDropOptions);
 					$(e).droppable(folderDropOptions);
 				}
 			}); 
@@ -105,7 +104,7 @@ FileTree.prototype={
 	getshared:function(){
 		$.ajax({
 			type: 'GET',
-			url:'/index.php/apps/files?dir=//Shared',
+			url:$('#fileList tr').filterAttr('data-file','Shared').find('a').attr('href'),
 			dataType: 'html',
 			async: true,
 			success: function (data) {
@@ -145,7 +144,8 @@ FileTree.prototype={
 			}
 			$.ajax({
 				type: 'POST',
-				url: './?app=files_tree&getfile=ajax/save.php&f=shared_show&s='+val,
+				url: OC.linkTo('files_tree', 'ajax/save.php'),
+				data:{f:'shared_show',s:val},
 				dataType: 'html',
 				async: true,
 				success: function (data) {
@@ -169,7 +169,8 @@ FileTree.prototype={
 		if(dir=='undefined') return;
 		$.ajax({
 			type: 'POST',
-			url:'./?app=files_tree&getfile=ajax/explore.php&dir='+dir+refresh,
+			url: OC.linkTo('files_tree', 'ajax/explore.php'),
+			data:{dir:dir,refresh:refresh},
 			dataType: 'json',
 			async: true,
 			success: function (k) {
@@ -251,25 +252,20 @@ FileTree.prototype={
 			var dir = $('#dir').val();
 			var la_path = dir.split('/');
 			$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
-			//$('#dir_browser ul.expanded').parent().css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
 			$('#dir_browser a').css('font-weight','500');
 			$('#dir_browser a.ft_sesam').css('background','#FFF');
 			for(var ledir in la_path){
 				le_dir=la_path[ledir];
-				//if(ledir=='') ledir='/';
 				if(ledir>0) lechem+='/';
 				lechem+=le_dir;
-				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());
-				//$('#dir_browser li').filterAttr('data-path', lechem).attr('class','expanded');					
+				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());					
 				$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
 				$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
 			}		
-			//$('#dir_browser a').filterAttr('data-pathname', lechem).parent('li').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
 			$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a.name').unbind('click').click(function(event){
 				event.preventDefault();
 				location.hash = this.pathname+this.search;			
 				return false;	
-				//$(this).attr('href', top.location.host+top.location.pathname+'#'+$(this).attr('href').replace('?','#'));
 			});
 			$('div.crumb:not(.last)').droppable(crumbDropOptions);
 			$('#dir_browser li').droppable(crumbDropOptions);
@@ -301,7 +297,8 @@ FileTree.prototype={
 				//console.log(dirpath);
 				$.ajax({
 					type: 'POST',
-					url: './?app=files_tree&getfile=ajax/explore.php&dir='+dirpath+'&from=toggle_dir',
+					url: OC.linkTo('files_tree', 'ajax/explore.php'),
+					data:{dir:dirpath,from:'toggle_dir'},
 					dataType: 'json',
 					async: true,
 					success: function (k) {
@@ -316,7 +313,8 @@ FileTree.prototype={
 								if(manual==1){
 									$.ajax({
 										type: 'GET',
-										url: './?app=files_tree&getfile=ajax/save.php&d='+dirpath+'&s=expanded',
+										url: OC.linkTo('files_tree', 'ajax/save.php'),
+										data:{d:dirpath,s:'expanded'},
 										dataType: 'html',
 										async: true,
 										success: function (k) {
@@ -363,10 +361,17 @@ $(document).ready(function(){
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
-	var url = window.location.hash.substring(1);
-	if(url==''){
-		window.location='#/index.php/apps/files?dir=';
+	var loc_url = window.location.toString();
+	if(loc_url.indexOf('files_trashbin')<0){
+		var url = window.location.hash.substring(1)+window.location.search;
+		if(url==''){
+			url=OC.linkTo('files', '');
+			window.location='#'+url;
+		}
+		else{
+			on_hashchange(true);
+		}
+		
 	}
-	//on_hashchange(true);
   }
 });
