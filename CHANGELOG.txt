@@ -1,3 +1,6 @@
+V 0.6.9
+Fix : "You don't have permissions here" problem by javicarabantes
+
 V 0.6.8
 Fix : Subdirectory OC installs
 
