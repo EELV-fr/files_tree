@@ -216,6 +216,9 @@ FileTree.prototype={
     				$('#dropdown').remove();
 					document.title = $(data).filter('title').text(); 
 					$('#dir').val( $(data).find("#dir").val());
+					// javicarabantes patch 
+					$('.actions').html($(data).find('.actions').html());
+  
 				    $('#controls .crumb').animate({width:0,opacity:0},300,function(){
 				    	$(this).remove();
 				    });	
