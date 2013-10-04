@@ -1,21 +1,21 @@
-#fileTable{
+.filestree #fileTable{
 	width:86%;
 	float:right;
 	margin-top:2.8em;
 	position:relative;
 }
-#fileTable.multiselect thead{
+.filestree #fileTable.multiselect thead{
 	position:relative;
 }
-#content #filestable{
+#content.filestree #filestable{
 	width:86%;
 	float:right;
 	position:relative;
 }
-#content #filestable.multiselect{
+#content.filestree #filestable.multiselect{
 	top:36px;
 }
-#content #filestable.multiselect thead{
+#content.filestree #filestable.multiselect thead{
 	position:relative;
 	top:0;
 }
