@@ -1,5 +1,15 @@
+V 0.7.0
+Add : tree (re)remembers opened folders
+Add : check if the opening url is /Shared and redirect to correctly manage read/write rights
+Add : Do not display files_tree in public shared folders
+Fix : Improve JS code cleanness
+
+V 0.6.10
+Fix : back v0.6.8
+
 V 0.6.9
 Fix : "You don't have permissions here" problem by javicarabantes
+
 
 V 0.6.8
 Fix : Subdirectory OC installs
