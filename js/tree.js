@@ -22,10 +22,11 @@
 function FileTree(){
 	display_shared=0;
 	tree=this;
+	$('#content').addClass('filestree');
 	$('#fileTable').css('width','86%');
 	$('#emptyfolder').css('margin-left','20%');
 	$('#content').prepend('<div id="files_tree"><div id="dir_browser"><span class="loading">'+t('files_tree','Loading')+'</span></div><div id="files_tree_switcher"></div><div id="files_tree_refresh" class="bt"></div></div>');
-	$('#files_tree_switcher').click(function(){tree.toggle()});
+	$('#files_tree_switcher').click(function(){tree.toggle();});
 	$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').height()-40);
 	tree.browse('','');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
@@ -167,20 +168,24 @@ FileTree.prototype={
 	browse:function(dir,refresh){
 		$('#dropdown').remove();
 		if(dir=='undefined') return;
-		$.ajax({
-			type: 'POST',
-			url: OC.linkTo('files_tree', 'ajax/explore.php'),
-			data:{dir:dir,refresh:refresh},
-			dataType: 'json',
-			async: true,
-			success: function (k) {
+		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
+			{
+				data:{dir:dir,refresh:refresh},
+				async: true
+			},
+			function (k) {
 				$('#dir_browser').html(k.list);
 				$('#dir_browser ul').attr('class','collapsed');	
 				var stats = k.stat;
 				display_shared=k.shared;
 				if(k.stat){
 					for(var f in k.stat){
-						$('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
+						if(k.stat[f]=='expanded'){
+							if($('#dir_browser ul').filterAttr('data-pathname',f).length==0){
+								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);
+							}
+						}
+						$('#dir_browser ul').filterAttr('data-pathname',f).attr('class',k.stat[f]);						
 					}
 				}
 				if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
@@ -198,8 +203,9 @@ FileTree.prototype={
 					tree.rescan();
 				}
 				
-			}
-		});	
+			},
+			'json'
+		);	
 	},
 	// For AJAX Navigation
 	browseContent:function(url){
@@ -217,7 +223,7 @@ FileTree.prototype={
 					document.title = $(data).filter('title').text(); 
 					$('#dir').val( $(data).find("#dir").val());
 					// javicarabantes patch 
-					$('.actions').html($(data).find('.actions').html());
+					//$('.actions').html($(data).find('.actions').html());
   
 				    $('#controls .crumb').animate({width:0,opacity:0},300,function(){
 				    	$(this).remove();
@@ -291,53 +297,48 @@ FileTree.prototype={
 	},
 	toggle_dir:function(li,manual){
 		ul = li.children('ul');
+		var dirpath = li.children('a:first-child').data('pathname');			
+		if(dirpath==undefined) return false;
 		if(ul.length==0){
-			var dirpath = li.children('a:first-child').data('pathname');			
-			if(dirpath==undefined){
-				return false;	
-			} 	
-			else{
-				//console.log(dirpath);
-				$.ajax({
-					type: 'POST',
-					url: OC.linkTo('files_tree', 'ajax/explore.php'),
-					data:{dir:dirpath,from:'toggle_dir'},
-					dataType: 'json',
-					async: true,
-					success: function (k) {
-						//console.log(k);
-						if(k.list!='' && k.list!=null){
-							li.children('a:first-child').animate({opacity:1});
-							li.append(k.list);
-							ul = li.children('ul');
-							if(ul.length>0){
-								li.attr('class','expanded');
-								tree.rescan();
-								if(manual==1){
-									$.ajax({
-										type: 'GET',
-										url: OC.linkTo('files_tree', 'ajax/save.php'),
-										data:{d:dirpath,s:'expanded'},
-										dataType: 'html',
-										async: true,
-										success: function (k) {
-											//nothing to do		
-										}
-									});
-								}								
-							}
+			$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
+				{ 
+					dir:dirpath,
+					from:'toggle_dir'
+				},
+				function (k) {
+					if(k.list!='' && k.list!=null){
+						li.children('a:first-child').animate({opacity:1});
+						li.append(k.list);
+						ul = li.children('ul');
+						if(ul.length>0){
+							li.attr('class','expanded');
+							tree.rescan();
+							if(manual==1){
+								$.post(OC.linkTo('files_tree', 'ajax/save.php'),
+									{
+										d:dirpath,
+										s:'expanded'
+									}
+								);
+							}								
 						}
-						else{
-							li.children('a:first-child').animate({opacity:0.35});	
-						}					
 					}
-				});
-			}
-			
+					else{
+						li.children('a:first-child').animate({opacity:0.35});	
+					}					
+				},
+				'json'
+			);		
 		}
 		else if(li.attr('class')=='expanded'){
 			li.attr('class','collapsed');
 			li.children('ul').remove();
+			$.post(OC.linkTo('files_tree', 'ajax/save.php'),
+				{
+					d:dirpath,
+					s:'collapsed'
+				}
+			);
 		}
 		else{
 			// normally, nothing to do here
@@ -353,7 +354,9 @@ FileTree.prototype={
 };
 
 $(document).ready(function(){
-  if($('#fileList').length>0) {	
+  var loc_url = window.location.toString();
+  if($('#fileList').length>0 && loc_url.indexOf('public.php?')==-1) {	
+  	
 	var the_tree=new FileTree();
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
@@ -364,17 +367,22 @@ $(document).ready(function(){
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
-	var loc_url = window.location.toString();
-	if(loc_url.indexOf('files_trashbin')<0){
+	if(loc_url.indexOf('files_trashbin')<0 && loc_url.indexOf('filestree_redir')<0){
 		var url = window.location.hash.substring(1)+window.location.search;
-		if(url==''){
+			console.log(url);
+		if(url==''){ // Default comportement
 			url=OC.linkTo('files', '');
 			window.location='#'+url;
 		}
-		else{
-			on_hashchange(true);
+		else if(url=='' || url.substr(0,22)=='?app=files&dir=/Shared'){ // Shared folder
+			window.location=OC.linkTo('files', '')+'#/apps/files/'+url+'&filestree_redir';
 		}
-		
+		else{ // Other cases
+			on_hashchange(true);
+		}		
+	}
+	if(loc_url.indexOf('filestree_redir')>0){
+		on_hashchange(true);
 	}
   }
 });
