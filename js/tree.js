@@ -4,11 +4,14 @@
 * @author Bastien Ho (EELV - Urbancube)
 * @copyleft 2012 bastienho@urbancube.fr
 * @projeturl http://ecolosites.eelv.fr/files-tree
-*
+* 
 * Free Software under creative commons licence
 * http://creativecommons.org/licenses/by-nc/3.0/
 * Attribution-NonCommercial 3.0 Unported (CC BY-NC 3.0)
 * 
+* Commercial use exception granted by Author on Oct 23 2013 
+* To Teemu @ Verkkotaito Oy / Eteinen.fi
+*
 * You are free:
 * to Share — to copy, distribute and transmit the work
 * to Remix — to adapt the work
@@ -250,6 +253,8 @@ FileTree.prototype={
 	},
 	rescan:function(){
 		var lechem='';
+		$('#permissiondenied').fadeOut();
+
 		if($('#permissions').val()<23){
 			$('#new, #upload').fadeOut();
 		}
