@@ -253,8 +253,6 @@ FileTree.prototype={
 	},
 	rescan:function(){
 		var lechem='';
-		$('#permissiondenied').fadeOut();
-
 		if($('#permissions').val()<23){
 			$('#new, #upload').fadeOut();
 		}

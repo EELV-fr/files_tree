@@ -54,7 +54,7 @@ if($loglist!='' && $inilist==''){
 	\OC_Log::write('files_tree', 'cache saved to file ' . $dir_cache_file, \OC_Log::DEBUG);
 }
 /* Sendind results */
-$shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','1');
+$shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','');
 	
 echo json_encode(
 	array(
