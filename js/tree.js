@@ -253,6 +253,8 @@ FileTree.prototype={
 	},
 	rescan:function(){
 		var lechem='';
+		// Hide permissions denied button
+		$( ".actions" ).find(":button:disabled").fadeOut();
 		if($('#permissions').val()<23){
 			$('#new, #upload').fadeOut();
 		}
@@ -364,10 +366,24 @@ $(document).ready(function(){
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
+		//		window.alert("OnChange"+url);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
 		if(url=='' || url.indexOf('dir=')==-1) return;
 		the_tree.browseContent(url);
+		// After this rediect Shared folder detecion is no longer necessary
+		// Check if #new button exists (if it does not we are in a readonly folder)
+		if($("#new").length == 0) {
+			var uindex=url.indexOf('dir=');
+			var pindex=url.indexOf('filestree_redir'); // check for earlier redir
+			if ((uindex>0) && (pindex == -1)) { // redirect if readonly and last change was not redir
+				newurl=url.substring(uindex);
+				var linkurl=OC.linkTo('files', '');
+// 				window.alert("url: "+linkurl+" "+newurl+" "+url);
+				window.location=OC.linkTo('files', '')+'?'+newurl+'#filestree_redir&'+newurl;
+			}
+		}
+			
 	}
 	$(window).bind('hashchange', on_hashchange);
 	if(loc_url.indexOf('files_trashbin')<0 && loc_url.indexOf('filestree_redir')<0){
@@ -377,9 +393,10 @@ $(document).ready(function(){
 			url=OC.linkTo('files', '');
 			window.location='#'+url;
 		}
-		else if(url=='' || url.substr(0,22)=='?app=files&dir=/Shared'){ // Shared folder
-			window.location=OC.linkTo('files', '')+'#/apps/files/'+url+'&filestree_redir';
-		}
+// Fix in on_hashchange code
+// 		else if(url=='' || url.substr(0,22)=='?app=files&dir=/Shared'){ // Shared folder
+// 			window.location=OC.linkTo('files', '')+'#/apps/files/'+url+'&filestree_redir';
+// 		}
 		else{ // Other cases
 			on_hashchange(true);
 		}		
