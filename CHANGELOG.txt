@@ -1,3 +1,6 @@
+V 0.7.0-eteinen1
+Fix : Read-only user home. Again, but without patch requirement.
+
 V 0.7.0-eteinen0
 Fix : Read-only user home. Needs apps/files/template/index.php patch
 Add : License exception for Eteinen
