@@ -1,6 +1,7 @@
 <?php  
 OCP\JSON::callCheck();
 $currentdir=$_REQUEST['dir'];
+	
 $uid=OCP\User::getUser();
 
 function listdir($dir,$dirs_stat){
@@ -38,7 +39,7 @@ $dirs_stat=$s;
 /* Caching results */
 $loglist='';
 $inilist='';
-$dir_cache_file='files_tree_cache'.$currentdir;
+$dir_cache_file='files_tree_cache'.(!empty($currentdir) ? str_replace("/", "_", $currentdir) : '_ROOT_TREE');
 
 $cache = new OC_Cache_File;
 
