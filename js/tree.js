@@ -303,6 +303,7 @@ FileTree.prototype={
 		var dirpath = li.children('a:first-child').data('pathname');			
 		if(dirpath==undefined) return false;
 		if(ul.length==0){
+			last_explored=dirpath;
 			$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 				{ 
 					dir:dirpath,
@@ -310,7 +311,6 @@ FileTree.prototype={
 				},
 				function (k) {
 					if(k.list!='' && k.list!=null){
-						last_explored=dirpath;
 						li.children('a:first-child').animate({opacity:1});
 						li.append(k.list);
 						ul = li.children('ul');
