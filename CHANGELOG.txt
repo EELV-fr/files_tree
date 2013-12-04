@@ -1,3 +1,14 @@
+V 0.7.1
+Fix : Refresh and cache functionality
+Fix : Double listing of folder
+
+V 0.7.0-eteinen1
+Fix : Read-only user home. Again, but without patch requirement.
+
+V 0.7.0-eteinen0
+Fix : Read-only user home. Needs apps/files/template/index.php patch
+Add : License exception for Eteinen
+ 
 V 0.7.0
 Add : tree (re)remembers opened folders
 Add : check if the opening url is /Shared and redirect to correctly manage read/write rights

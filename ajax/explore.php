@@ -1,6 +1,11 @@
 <?php  
 OCP\JSON::callCheck();
-$currentdir=$_REQUEST['dir'];
+$DEFAULT_ROOT = '_ROOT_TREE';
+$DEFAULT_PREFIX='files_tree_cache';
+
+$currentdir=$_POST['dir'];
+$refresh= isset($_POST['refresh']) ?: false;
+	
 $uid=OCP\User::getUser();
 
 function listdir($dir,$dirs_stat){
@@ -38,11 +43,11 @@ $dirs_stat=$s;
 /* Caching results */
 $loglist='';
 $inilist='';
-$dir_cache_file='files_tree_cache'.$currentdir;
+$dir_cache_file=$DEFAULT_PREFIX.(!empty($currentdir) ? str_replace("/", "_", $currentdir) : $DEFAULT_ROOT);
 
 $cache = new OC_Cache_File;
 
-if(!isset($_REQUEST['refresh']) && null !== $loglist = $cache->get($dir_cache_file)){
+if (!$refresh && null !== $loglist = $cache->get($dir_cache_file)){
 	$inilist=$loglist;
 }
 
@@ -54,7 +59,7 @@ if($loglist!='' && $inilist==''){
 	\OC_Log::write('files_tree', 'cache saved to file ' . $dir_cache_file, \OC_Log::DEBUG);
 }
 /* Sendind results */
-$shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','');
+$shared_show = OC_Preferences::getValue($uid,'files_tree','shared_show','1');
 	
 echo json_encode(
 	array(

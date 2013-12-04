@@ -4,11 +4,14 @@
 * @author Bastien Ho (EELV - Urbancube)
 * @copyleft 2012 bastienho@urbancube.fr
 * @projeturl http://ecolosites.eelv.fr/files-tree
-*
+* 
 * Free Software under creative commons licence
 * http://creativecommons.org/licenses/by-nc/3.0/
 * Attribution-NonCommercial 3.0 Unported (CC BY-NC 3.0)
 * 
+* Commercial use exception granted by Author on Oct 23 2013 
+* To Teemu @ Verkkotaito Oy / Eteinen.fi
+*
 * You are free:
 * to Share — to copy, distribute and transmit the work
 * to Remix — to adapt the work
@@ -28,10 +31,10 @@ function FileTree(){
 	$('#content').prepend('<div id="files_tree"><div id="dir_browser"><span class="loading">'+t('files_tree','Loading')+'</span></div><div id="files_tree_switcher"></div><div id="files_tree_refresh" class="bt"></div></div>');
 	$('#files_tree_switcher').click(function(){tree.toggle();});
 	$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').height()-40);
-	tree.browse('','');
+	tree.browse('');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
 		$('#dir_browser').html('<span class="loading">'+t('files_tree','Resfreshing files tree')+'</span>');
-		tree.browse('','1');		
+		tree.browse('',true);		
 	});
 	tree.sync();
 }
@@ -166,11 +169,14 @@ FileTree.prototype={
 		}); 
 	},
 	browse:function(dir,refresh){
+		refresh = typeof refresh !== 'undefined' ? refresh : false;
 		$('#dropdown').remove();
 		if(dir=='undefined') return;
 		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 			{
-				data:{dir:dir,refresh:refresh},
+				dir:dir,
+				from:'browse',
+				refresh:refresh,
 				async: true
 			},
 			function (k) {
@@ -181,8 +187,8 @@ FileTree.prototype={
 				if(k.stat){
 					for(var f in k.stat){
 						if(k.stat[f]=='expanded'){
-							if($('#dir_browser ul').filterAttr('data-pathname',f).length==0){
-								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);
+							if($('#dir_browser li').filterAttr('data-pathname',f).length==0){
+								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0,refresh);
 							}
 						}
 						$('#dir_browser ul').filterAttr('data-pathname',f).attr('class',k.stat[f]);						
@@ -200,7 +206,7 @@ FileTree.prototype={
 				}			
 				else{
 					tree.collex();	
-					tree.rescan();
+					//tree.rescan();
 				}
 				
 			},
@@ -248,8 +254,10 @@ FileTree.prototype={
 		});
 		
 	},
-	rescan:function(){
+	rescan:function(refresh){
 		var lechem='';
+		// Hide permissions denied button
+		$( ".actions" ).find(":button:disabled").fadeOut();
 		if($('#permissions').val()<23){
 			$('#new, #upload').fadeOut();
 		}
@@ -267,7 +275,7 @@ FileTree.prototype={
 				le_dir=la_path[ledir];
 				if(ledir>0) lechem+='/';
 				lechem+=le_dir;
-				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());					
+				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent(),refresh);					
 				$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
 				$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
 			}		
@@ -288,14 +296,14 @@ FileTree.prototype={
 		$('div').filterAttr('data-dir','/Shared').find('a').text(t('files_tree','Shared'));
 		
 	},
-	open_dir:function(li){		
+	open_dir:function(li,refresh){		
 		ul = li.children('ul');
 		if(li.attr('class')!='expanded'){
-			tree.toggle_dir(li,0);
+			tree.toggle_dir(li,0,refresh);
 		}
 		li.attr('class','expanded');
 	},
-	toggle_dir:function(li,manual){
+	toggle_dir:function(li,manual,refresh){
 		ul = li.children('ul');
 		var dirpath = li.children('a:first-child').data('pathname');			
 		if(dirpath==undefined) return false;
@@ -303,7 +311,8 @@ FileTree.prototype={
 			$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 				{ 
 					dir:dirpath,
-					from:'toggle_dir'
+					from:'toggle_dir',
+					refresh:refresh
 				},
 				function (k) {
 					if(k.list!='' && k.list!=null){
@@ -312,7 +321,7 @@ FileTree.prototype={
 						ul = li.children('ul');
 						if(ul.length>0){
 							li.attr('class','expanded');
-							tree.rescan();
+							tree.rescan(refresh);
 							if(manual==1){
 								$.post(OC.linkTo('files_tree', 'ajax/save.php'),
 									{
@@ -361,10 +370,24 @@ $(document).ready(function(){
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
+		//		window.alert("OnChange"+url);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
 		if(url=='' || url.indexOf('dir=')==-1) return;
 		the_tree.browseContent(url);
+		// After this rediect Shared folder detecion is no longer necessary
+		// Check if #new button exists (if it does not we are in a readonly folder)
+		if($("#new").length == 0) {
+			var uindex=url.indexOf('dir=');
+			var pindex=url.indexOf('filestree_redir'); // check for earlier redir
+			if ((uindex>0) && (pindex == -1)) { // redirect if readonly and last change was not redir
+				newurl=url.substring(uindex);
+				var linkurl=OC.linkTo('files', '');
+// 				window.alert("url: "+linkurl+" "+newurl+" "+url);
+				window.location=OC.linkTo('files', '')+'?'+newurl+'#filestree_redir&'+newurl;
+			}
+		}
+			
 	}
 	$(window).bind('hashchange', on_hashchange);
 	if(loc_url.indexOf('files_trashbin')<0 && loc_url.indexOf('filestree_redir')<0){
@@ -374,9 +397,10 @@ $(document).ready(function(){
 			url=OC.linkTo('files', '');
 			window.location='#'+url;
 		}
-		else if(url=='' || url.substr(0,22)=='?app=files&dir=/Shared'){ // Shared folder
-			window.location=OC.linkTo('files', '')+'#/apps/files/'+url+'&filestree_redir';
-		}
+// Fix in on_hashchange code
+// 		else if(url=='' || url.substr(0,22)=='?app=files&dir=/Shared'){ // Shared folder
+// 			window.location=OC.linkTo('files', '')+'#/apps/files/'+url+'&filestree_redir';
+// 		}
 		else{ // Other cases
 			on_hashchange(true);
 		}		
