@@ -1,6 +1,10 @@
 <?php  
 OCP\JSON::callCheck();
-$currentdir=$_REQUEST['dir'];
+$DEFAULT_ROOT = '_ROOT_TREE';
+$DEFAULT_PREFIX='files_tree_cache';
+
+$currentdir=$_POST['dir'];
+$refresh=$_POST['refresh'];
 	
 $uid=OCP\User::getUser();
 
@@ -39,11 +43,20 @@ $dirs_stat=$s;
 /* Caching results */
 $loglist='';
 $inilist='';
-$dir_cache_file='files_tree_cache'.(!empty($currentdir) ? str_replace("/", "_", $currentdir) : '_ROOT_TREE');
+$dir_cache_file=$DEFAULT_PREFIX.(!empty($currentdir) ? str_replace("/", "_", $currentdir) : $DEFAULT_ROOT);
 
 $cache = new OC_Cache_File;
 
-if(!isset($_REQUEST['refresh']) && null !== $loglist = $cache->get($dir_cache_file)){
+if(!empty ($refresh)) {
+	$loglist = listdir($currentdir,$dirs_stat);
+	$cache->set($dir_cache_file, $loglist);	
+	\OC_Log::write('files_tree', 'cache saved to file ' . $dir_cache_file, \OC_Log::DEBUG);
+	$currentdir='';
+	$loglist='';
+	$dir_cache_file=$DEFAULT_PREFIX.$DEFAULT_ROOT;
+	
+}
+else if (null !== $loglist = $cache->get($dir_cache_file)){
 	$inilist=$loglist;
 }
 
