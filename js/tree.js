@@ -25,17 +25,16 @@
 function FileTree(){
 	display_shared=0;
 	tree=this;
-	last_explored = '';
 	$('#content').addClass('filestree');
 	$('#fileTable').css('width','86%');
 	$('#emptyfolder').css('margin-left','20%');
 	$('#content').prepend('<div id="files_tree"><div id="dir_browser"><span class="loading">'+t('files_tree','Loading')+'</span></div><div id="files_tree_switcher"></div><div id="files_tree_refresh" class="bt"></div></div>');
 	$('#files_tree_switcher').click(function(){tree.toggle();});
 	$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').height()-40);
-	tree.browse('','');
+	tree.browse('');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
 		$('#dir_browser').html('<span class="loading">'+t('files_tree','Resfreshing files tree')+'</span>');
-		tree.browse(last_explored,'1');		
+		tree.browse('',true);		
 	});
 	tree.sync();
 }
@@ -170,13 +169,14 @@ FileTree.prototype={
 		}); 
 	},
 	browse:function(dir,refresh){
+		refresh = typeof refresh !== 'undefined' ? refresh : false;
 		$('#dropdown').remove();
 		if(dir=='undefined') return;
 		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 			{
 				dir:dir,
-				refresh:refresh,
 				from:'browse',
+				refresh:refresh,
 				async: true
 			},
 			function (k) {
@@ -187,8 +187,8 @@ FileTree.prototype={
 				if(k.stat){
 					for(var f in k.stat){
 						if(k.stat[f]=='expanded'){
-							if($('#dir_browser ul').filterAttr('data-pathname',f).length==0){
-								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);
+							if($('#dir_browser li').filterAttr('data-pathname',f).length==0){
+								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0,refresh);
 							}
 						}
 						$('#dir_browser ul').filterAttr('data-pathname',f).attr('class',k.stat[f]);						
@@ -206,7 +206,7 @@ FileTree.prototype={
 				}			
 				else{
 					tree.collex();	
-					tree.rescan();
+					//tree.rescan();
 				}
 				
 			},
@@ -254,7 +254,7 @@ FileTree.prototype={
 		});
 		
 	},
-	rescan:function(){
+	rescan:function(refresh){
 		var lechem='';
 		// Hide permissions denied button
 		$( ".actions" ).find(":button:disabled").fadeOut();
@@ -275,7 +275,7 @@ FileTree.prototype={
 				le_dir=la_path[ledir];
 				if(ledir>0) lechem+='/';
 				lechem+=le_dir;
-				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());					
+				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent(),refresh);					
 				$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
 				$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
 			}		
@@ -296,23 +296,23 @@ FileTree.prototype={
 		$('div').filterAttr('data-dir','/Shared').find('a').text(t('files_tree','Shared'));
 		
 	},
-	open_dir:function(li){		
+	open_dir:function(li,refresh){		
 		ul = li.children('ul');
 		if(li.attr('class')!='expanded'){
-			tree.toggle_dir(li,0);
+			tree.toggle_dir(li,0,refresh);
 		}
 		li.attr('class','expanded');
 	},
-	toggle_dir:function(li,manual){
+	toggle_dir:function(li,manual,refresh){
 		ul = li.children('ul');
 		var dirpath = li.children('a:first-child').data('pathname');			
 		if(dirpath==undefined) return false;
 		if(ul.length==0){
-			last_explored=dirpath;
 			$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 				{ 
 					dir:dirpath,
-					from:'toggle_dir'
+					from:'toggle_dir',
+					refresh:refresh
 				},
 				function (k) {
 					if(k.list!='' && k.list!=null){
@@ -321,7 +321,7 @@ FileTree.prototype={
 						ul = li.children('ul');
 						if(ul.length>0){
 							li.attr('class','expanded');
-							tree.rescan();
+							tree.rescan(refresh);
 							if(manual==1){
 								$.post(OC.linkTo('files_tree', 'ajax/save.php'),
 									{

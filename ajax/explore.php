@@ -4,7 +4,7 @@ $DEFAULT_ROOT = '_ROOT_TREE';
 $DEFAULT_PREFIX='files_tree_cache';
 
 $currentdir=$_POST['dir'];
-$refresh=$_POST['refresh'];
+$refresh= isset($_POST['refresh']) ?: false;
 	
 $uid=OCP\User::getUser();
 
@@ -47,16 +47,7 @@ $dir_cache_file=$DEFAULT_PREFIX.(!empty($currentdir) ? str_replace("/", "_", $cu
 
 $cache = new OC_Cache_File;
 
-if(!empty ($refresh)) {
-	$loglist = listdir($currentdir,$dirs_stat);
-	$cache->set($dir_cache_file, $loglist);	
-	\OC_Log::write('files_tree', 'cache saved to file ' . $dir_cache_file, \OC_Log::DEBUG);
-	$currentdir='';
-	$loglist='';
-	$dir_cache_file=$DEFAULT_PREFIX.$DEFAULT_ROOT;
-	
-}
-else if (null !== $loglist = $cache->get($dir_cache_file)){
+if (!$refresh && null !== $loglist = $cache->get($dir_cache_file)){
 	$inilist=$loglist;
 }
 
