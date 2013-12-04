@@ -22,6 +22,7 @@
 function FileTree(){
 	display_shared=0;
 	tree=this;
+	last_explored = '';
 	$('#content').addClass('filestree');
 	$('#fileTable').css('width','86%');
 	$('#emptyfolder').css('margin-left','20%');
@@ -31,7 +32,7 @@ function FileTree(){
 	tree.browse('','');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
 		$('#dir_browser').html('<span class="loading">'+t('files_tree','Resfreshing files tree')+'</span>');
-		tree.browse('','1');		
+		tree.browse(last_explored,'1');		
 	});
 	tree.sync();
 }
@@ -170,7 +171,9 @@ FileTree.prototype={
 		if(dir=='undefined') return;
 		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 			{
-				data:{dir:dir,refresh:refresh},
+				dir:dir,
+				refresh:refresh,
+				from:'browse',
 				async: true
 			},
 			function (k) {
@@ -307,6 +310,7 @@ FileTree.prototype={
 				},
 				function (k) {
 					if(k.list!='' && k.list!=null){
+						last_explored=dirpath;
 						li.children('a:first-child').animate({opacity:1});
 						li.append(k.list);
 						ul = li.children('ul');
