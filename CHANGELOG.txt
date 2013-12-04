@@ -1,3 +1,7 @@
+V 0.7.1
+Fix : Refresh and cache functionality
+Fix : Double listing of folder
+
 V 0.7.0-eteinen1
 Fix : Read-only user home. Again, but without patch requirement.
 
