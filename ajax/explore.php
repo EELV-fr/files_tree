@@ -40,7 +40,7 @@ $loglist='';
 $inilist='';
 $dir_cache_file='files_tree_cache'.$currentdir;
 
-$cache = new OC_Cache_File;
+$cache = new OC\Cache\File;
 
 if(!isset($_REQUEST['refresh']) && null !== $loglist = $cache->get($dir_cache_file)){
 	$inilist=$loglist;
