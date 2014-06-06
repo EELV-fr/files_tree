@@ -260,7 +260,8 @@ FileTree.prototype={
 		if($('#dir').length>0) {	
 			var dir = $('#dir').val();
 			var la_path = dir.split('/');
-			$('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
+            $('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
+            $('#dir_browser li.expanded').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
 			$('#dir_browser a').css('font-weight','500');
 			$('#dir_browser a.ft_sesam').css('background','#FFF');
 			for(var ledir in la_path){
