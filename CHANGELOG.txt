@@ -1,3 +1,7 @@
+V 0.8.1
+Fix : Adjust tree top margin
+Add : Update icons 
+
 V 0.8.0
 Fix : OC6 friendly
 
