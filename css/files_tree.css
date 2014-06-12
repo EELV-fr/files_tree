@@ -96,6 +96,7 @@
 	position:relative;
 	font-size:0.95em;
 	line-height:1.1em;
+        opacity:0.9;
 }
 #dir_browser li.collapsed{
 	background-image:url('../files_tree/img/closed.png');

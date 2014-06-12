@@ -170,7 +170,8 @@ FileTree.prototype={
 		if(dir=='undefined') return;
 		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
 			{
-				data:{dir:dir,refresh:refresh},
+				dir:dir,
+                                refresh:refresh,
 				async: true
 			},
 			function (k) {
@@ -181,11 +182,11 @@ FileTree.prototype={
 				if(k.stat){
 					for(var f in k.stat){
 						if(k.stat[f]=='expanded'){
-							if($('#dir_browser ul').filterAttr('data-pathname',f).length==0){
-								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);
+							if($('#dir_browser ul').filterAttr('data-path',f).length==0){
+								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);                                                                
 							}
 						}
-						$('#dir_browser ul').filterAttr('data-pathname',f).attr('class',k.stat[f]);						
+						$('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
 					}
 				}
 				if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
@@ -298,6 +299,7 @@ FileTree.prototype={
 	},
 	toggle_dir:function(li,manual){
 		ul = li.children('ul');
+               
 		var dirpath = li.children('a:first-child').data('pathname');			
 		if(dirpath==undefined) return false;
 		if(ul.length==0){
@@ -370,7 +372,7 @@ $(document).ready(function(){
 	$(window).bind('hashchange', on_hashchange);
 	if(loc_url.indexOf('files_trashbin')<0 && loc_url.indexOf('filestree_redir')<0){
 		var url = window.location.hash.substring(1)+window.location.search;
-			console.log(url);
+			
 		if(url==''){ // Default comportement
 			url=OC.linkTo('files', '');
 			window.location='#'+url;
