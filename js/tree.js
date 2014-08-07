@@ -19,24 +19,32 @@
 * Noncommercial — You may not use this work for commercial purposes.
 *
 */
-function FileTree(){
+function FileTree(target){
 	display_shared=0;
-	tree=this;
-	$('#content').addClass('filestree');
-	$('#fileTable').css('width','86%');
-	$('#emptyfolder').css('margin-left','20%');
-	$('#content').prepend('<div id="files_tree"><div id="dir_browser"><span class="loading">'+t('files_tree','Loading')+'</span></div><div id="files_tree_switcher"></div><div id="files_tree_refresh" class="bt"></div></div>');
-	$('#files_tree_switcher').click(function(){tree.toggle();});
+        this.target = target;
+        this.$el = $('#app-content-'+target);
+        this.fileliste = false;
+        tree=this;
+        this.object = this;
+        eval('var tree_'+target+'=this;');
+        
+	//tree=this;
+	$('#app-content-'+target).addClass('filestree');
+	$('#app-content-'+target+' #filestable').css({width:'85%','margin-left':'15%'});
+        $('#app-content-'+target+' #emptyfolder').css('margin-left','15%');
+	$('#app-content-'+target).prepend('<div id="files_tree"><div id="dir_browser"><span class="loading">'+t('files_tree','Loading')+'</span></div><div id="files_tree_switcher"></div><div id="files_tree_refresh" class="bt"></div></div>');
+	$('#files_tree_switcher').click(function(){this.toggle();});
 	$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').height()-40);
-	tree.browse('','');
+	this.browse('','');
 	$('#files_tree_refresh').css('background-image', 'url('+OC.imagePath('files_tree', 'refresh.svg')+')').click(function(){
 		$('#dir_browser').html('<span class="loading">'+t('files_tree','Resfreshing files tree')+'</span>');
-		tree.browse('','1');		
+		this.browse('','1');		
 	});
-	tree.sync();
+	this.sync();
 }
 FileTree.prototype={	
 	toggle:function(){
+            
 		if($('#files_tree').width()==10){
 			$('#fileList').parent().animate({width:'85%'},500);
 			$('#files_tree').animate({width:'14%'},500);
@@ -47,6 +55,7 @@ FileTree.prototype={
 		}
 	},
 	sync:function(){
+            this_tree=this;
 		if($('#fileList').parent().css('display')=='none'){
 			$('#files_tree').css('display','none');
 		}
@@ -55,7 +64,8 @@ FileTree.prototype={
 		}
 		$('#files_tree').css('height',Math.max($('#content').outerHeight(),$('#fileList').parent().outerHeight()+38));
 		$('#dir_browser').css('width',$('#files_tree').width()-25).css('height',$('#files_tree').outerHeight()-38);
-		setTimeout('tree.sync()',2000);
+                this_tree.rescan();
+		setTimeout('this_tree.sync()',2000);
 	},
 	content:function(fileliste){
 		if(fileliste==''){
@@ -71,13 +81,13 @@ FileTree.prototype={
 			});
 			
 			if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
-				tree.sharedbutton(display_shared);
+				this.sharedbutton(display_shared);
 				if(display_shared==1){
 					$('#fileList tr').filterAttr('data-file','Shared').hide();
-					tree.getshared();
+					this.getshared();
 				}
 				else{						
-					//tree.content(fileliste,'fileList');
+					//this.content(fileliste,'fileList');
 				}					
 			}
 			// Parse shared items
@@ -98,11 +108,12 @@ FileTree.prototype={
 			
 			
 			
-			tree.collex();	
-			tree.rescan();
+			this.collex();	
+			this.rescan();
 		}
 	},
 	getshared:function(){
+            this_tree=this;
 		$.ajax({
 			type: 'GET',
 			url:$('#fileList tr').filterAttr('data-file','Shared').find('a').attr('href'),
@@ -120,7 +131,7 @@ FileTree.prototype={
 				$('#files_tree_shared_line').nextAll('tr').find('td.filename').each(function(){
 					FileActions.display($(this));
 				});
-				tree.rescan();
+				this_tree.rescan();
 			}				
 		});
 	},
@@ -143,6 +154,7 @@ FileTree.prototype={
 			if ($('input[name=files_tree_shared_input]').is(":checked")) {
 				val=1;
 			}
+                        this_tree=this;
 			$.ajax({
 				type: 'POST',
 				url: OC.linkTo('files_tree', 'ajax/save.php'),
@@ -156,7 +168,7 @@ FileTree.prototype={
 						$('#files_tree_shared_title').html(t('files_tree','Show shared content'));
 					}
 					if(val==1){
-						tree.getshared();
+						this_tree.getshared();
 						$('#fileList tr').filterAttr('data-file','Shared').fadeOut();
 						$('#files_tree_shared_title').html(t('files_tree','Hide shared content'));
 					}									
@@ -166,6 +178,7 @@ FileTree.prototype={
 		}); 
 	},
 	browse:function(dir,refresh){
+            this_tree=this;
 		$('#dropdown').remove();
 		if(dir=='undefined') return;
 		$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
@@ -180,28 +193,28 @@ FileTree.prototype={
 				var stats = k.stat;
 				display_shared=k.shared;
 				if(k.stat){
-					for(var f in k.stat){
-						if(k.stat[f]=='expanded'){
-							if($('#dir_browser ul').filterAttr('data-path',f).length==0){
-								tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);                                                                
-							}
-						}
-						$('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
-					}
+                                    for(var f in k.stat){
+                                        if(k.stat[f]=='expanded'){
+                                            if($('#dir_browser ul').filterAttr('data-path',f).length==0){
+                                                this_tree.toggle_dir($('#dir_browser li').filterAttr('data-dir',f),0);                                                                
+                                            }
+                                        }
+                                        $('#dir_browser ul').filterAttr('data-path',f).attr('class',k.stat[f]);						
+                                    }
 				}
 				if($('#dir').val()=='/' && $('tr').filterAttr('data-file','Shared').length>0){					
-					tree.sharedbutton(k.shared);
+					this_tree.sharedbutton(k.shared);
 					if(k.shared==1){
 						$('#fileList tr').filterAttr('data-file','Shared').hide();
-						tree.getshared();
+						this_tree.getshared();
 					}
 					else{						
-						//tree.content(fileliste,'fileList');
+						//this.content(fileliste,'fileList');
 					}					
 				}			
 				else{
-					tree.collex();	
-					tree.rescan();
+                                    this_tree.collex();	
+                                    this_tree.rescan();
 				}
 				
 			},
@@ -210,79 +223,55 @@ FileTree.prototype={
 	},
 	// For AJAX Navigation
 	browseContent:function(url){
-		url=url.replace('app_files&dir=','');
-		if(url=='') url='/';		
-		var lastModified = new Date();
-		$('#fileList').fadeOut(500,function(){
-			$.ajax({
-				type: 'GET',
-				url:url,
-				dataType: 'html',
-				async: true,
-				success: function (data) {
-    				$('#dropdown').remove();
-					document.title = $(data).filter('title').text(); 
-					$('#dir').val( $(data).find("#dir").val());
-					// javicarabantes patch 
-					//$('.actions').html($(data).find('.actions').html());
-  
-				    $('#controls .crumb').animate({width:0,opacity:0},300,function(){
-				    	$(this).remove();
-				    });	
-				    var crumb='';		    
-				    $(data).find('#controls .crumb').each(function(){
-				    	crumb+=$(this).wrap('<div></div>').parent().html();
-				    });
-				    
-				 	setTimeout(function(){	
-				     $('#controls').prepend(crumb);	
-				     $('#controls .crumb').css('opacity',0).animate({width:'toggle'},1).animate({width:'toggle',opacity:1},300);
-				     tree.rescan();
-				 	},500);
-				    $('#permissions').val($(data).find('#permissions').val());			    
-				     tree.content($(data).find('#fileList').html());					
-				  
-				  $('#fileList').fadeIn(500);
-				}				
-			});	
-			
-		});
-		
+		if(url=='') url='/';	
+                if(this.fileliste === false){
+                    $('#app-content-'+this.target+' #controls .breadcrumb').remove();
+                    this.fileliste = new OCA.Files.FileList(this.$el);
+                }
+                this.fileliste.changeDirectory(url,false,true);	
+                this.rescan();
 	},
 	rescan:function(){
-		var lechem='';
-		if($('#permissions').val()<23){
-			$('#new, #upload').fadeOut();
-		}
-		else{
-			$('#new, #upload').fadeIn();
-		}
-		
-		if($('#dir').length>0) {	
-			var dir = $('#dir').val();
-			var la_path = dir.split('/');
-            $('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
-            $('#dir_browser li.expanded').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
-			$('#dir_browser a').css('font-weight','500');
-			$('#dir_browser a.ft_sesam').css('background','#FFF');
-			for(var ledir in la_path){
-				le_dir=la_path[ledir];
-				if(ledir>0) lechem+='/';
-				lechem+=le_dir;
-				tree.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());					
-				$('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
-				$('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
-			}		
-			$('#dir_browser a,#controls .crumb a, #fileList tr[data-type=dir] a.name').unbind('click').click(function(event){
-				event.preventDefault();
-				location.hash = this.pathname+this.search;			
-				return false;	
-			});
-			$('div.crumb:not(.last)').droppable(crumbDropOptions);
-			$('#dir_browser li').droppable(crumbDropOptions);
-			$('#dir_browser a.ft_sesam').unbind('click').click(function(){
-				tree.toggle_dir($(this).parent(),1);					
-			});
+                this_tree=this;
+		if($('#app-content-'+this.target+' #dir').length>0) {	
+                    var dir = $('#app-content-'+this.target+' #dir').val();
+                    if(dir==null)  return;
+                    var la_path = dir.split('/');
+                        
+                    $('#dir_browser li').css('background-image', 'url('+OC.imagePath('files_tree', 'closed.png')+')');
+                    $('#dir_browser li.expanded').css('background-image', 'url('+OC.imagePath('files_tree', 'open.png')+')');
+                    $('#dir_browser a').css('font-weight','500');
+                    $('#dir_browser a.ft_sesam').css('background','#FFF');
+                    lechem='';
+                    for(var ledir in la_path){
+                        le_dir=la_path[ledir];
+                        if(ledir>0) lechem+='/';
+                        lechem+=le_dir;
+                        console.log(lechem);
+                        this.open_dir($('a.ft_sesam').filterAttr('data-pathname',lechem).parent());					
+                        $('#dir_browser a.ft_link').filterAttr('data-pathname', lechem).css('font-weight','700');					
+                        $('#dir_browser a.ft_sesam').filterAttr('data-pathname', lechem).css('background','#666');
+                    }
+                    //OCA.Files.BreadCrumb._makeCrumbs(dir);
+                    $('#app-content-'+this.target+' #dir_browser a,#app-content-'+this.target+' #controls .crumb a, #app-content-'+this.target+' #fileList tr[data-type=dir] a.name').unbind('click').click(function(event){
+                        event.preventDefault();
+                        if($(this).parent().hasClass('crumb')){
+                            path = $(this).parent().attr('data-dir');
+                        }
+                        else if($(this).hasClass('name')){
+                            console.log();
+                            path = (dir==='/'?'/':dir+'/')+$(this).parent().parent().attr('data-file');
+                        }
+                        else{
+                            path = $(this).attr('data-pathname');
+                        }
+                        console.log(path);
+                        location.hash = path;//this.pathname+this.search;			
+                        return false;	
+                    });
+                    $('#app-content-'+this.target+' #dir_browser a.ft_sesam').unbind('click').click(function(){
+                            this_tree.toggle_dir($(this).parent(),1);					
+                    });
 		}
 		// Traduction
 		$('tr').filterAttr('data-file','Shared').find('span.nametext').text(t('files_tree','Shared'));
@@ -293,7 +282,7 @@ FileTree.prototype={
 	open_dir:function(li){		
 		ul = li.children('ul');
 		if(li.attr('class')!='expanded'){
-			tree.toggle_dir(li,0);
+			this.toggle_dir(li,0);
 		}
 		li.attr('class','expanded');
 	},
@@ -303,45 +292,46 @@ FileTree.prototype={
 		var dirpath = li.children('a:first-child').data('pathname');			
 		if(dirpath==undefined) return false;
 		if(ul.length==0){
-			$.post(OC.linkTo('files_tree', 'ajax/explore.php'),
-				{ 
-					dir:dirpath,
-					from:'toggle_dir'
-				},
-				function (k) {
-					if(k.list!='' && k.list!=null){
-						li.children('a:first-child').animate({opacity:1});
-						li.append(k.list);
-						ul = li.children('ul');
-						if(ul.length>0){
-							li.attr('class','expanded');
-							tree.rescan();
-							if(manual==1){
-								$.post(OC.linkTo('files_tree', 'ajax/save.php'),
-									{
-										d:dirpath,
-										s:'expanded'
-									}
-								);
-							}								
-						}
-					}
-					else{
-						li.children('a:first-child').animate({opacity:0.35});	
-					}					
-				},
-				'json'
-			);		
+                    this_tree=this;
+                    $.post(OC.linkTo('files_tree', 'ajax/explore.php'),
+                        { 
+                                dir:dirpath,
+                                from:'toggle_dir'
+                        },
+                        function (k) {
+                            if(k.list!='' && k.list!=null){
+                                li.children('a:first-child').animate({opacity:1});
+                                li.append(k.list);
+                                ul = li.children('ul');
+                                if(ul.length>0){
+                                        li.attr('class','expanded');
+                                        this_tree.rescan();
+                                        if(manual===1){
+                                            $.post(OC.linkTo('files_tree', 'ajax/save.php'),
+                                                {
+                                                    d:dirpath,
+                                                    s:'expanded'
+                                                }
+                                            );
+                                        }								
+                                }
+                            }
+                            else{
+                                    li.children('a:first-child').animate({opacity:0.35});	
+                            }					
+                        },
+                        'json'
+                    );		
 		}
 		else if(li.attr('class')=='expanded'){
-			li.attr('class','collapsed');
-			li.children('ul').remove();
-			$.post(OC.linkTo('files_tree', 'ajax/save.php'),
-				{
-					d:dirpath,
-					s:'collapsed'
-				}
-			);
+                    li.attr('class','collapsed');
+                    li.children('ul').remove();
+                    $.post(OC.linkTo('files_tree', 'ajax/save.php'),
+                        {
+                            d:dirpath,
+                            s:'collapsed'
+                        }
+                    );
 		}
 		else{
 			// normally, nothing to do here
@@ -360,13 +350,13 @@ $(document).ready(function(){
   var loc_url = window.location.toString();
   if($('#fileList').length>0 && loc_url.indexOf('public.php?')==-1) {	
   	
-	var the_tree=new FileTree();
+	var the_tree=new FileTree('files');
 	// AJAX NAVIGATION
 	function on_hashchange(event) {
 		var url = window.location.hash.substring(1);
 		if (!event || event.type === "DOMContentLoaded")
 				return;
-		if(url=='' || url.indexOf('dir=')==-1) return;
+		if(url=='' || url.indexOf('/')==-1) return;
 		the_tree.browseContent(url);
 	}
 	$(window).bind('hashchange', on_hashchange);
